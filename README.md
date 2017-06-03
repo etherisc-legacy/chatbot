@@ -15,3 +15,7 @@ Twitter Handle: @kpi
 Name: **Christoph**  
 Github Handle: @christoph2806  
 Slack Username: @christoph2806
+
+Name: **Will**  
+Github Handle: @wsaults  
+Slack Username: @wsaults
