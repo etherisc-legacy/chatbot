@@ -1,5 +1,8 @@
-# chatbot
+# Chatbot
 Our collaboration space for participation in the status.im and tokenbrowser.com hackathons.
+
+## Git flow
+https://danielkummer.github.io/git-flow-cheatsheet/
 
 ## Our Team:
 
