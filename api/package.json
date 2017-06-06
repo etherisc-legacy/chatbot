@@ -1,0 +1,54 @@
+{
+  "name": "etherisc-api",
+  "version": "0.0.1",
+  "description": "ES6 RESTful Express API",
+  "main": "dist",
+  "scripts": {
+    "dev": "nodemon -w src --exec \"babel-node src --presets es2015,stage-0\"",
+    "build": "babel src -s -D -d dist --presets es2015,stage-0",
+    "start": "node dist",
+    "prestart": "npm run -s build",
+    "test": "eslint src"
+  },
+  "eslintConfig": {
+    "extends": "eslint:recommended",
+    "parserOptions": {
+      "ecmaVersion": 7,
+      "sourceType": "module"
+    },
+    "env": {
+      "node": true
+    },
+    "rules": {
+      "no-console": 0,
+      "no-unused-vars": 1
+    }
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "ajv": "^4.11.6",
+    "body-parser": "^1.13.3",
+    "compression": "^1.5.2",
+    "cors": "^2.7.1",
+    "cryptox": "^1.2.1",
+    "dotenv": "^4.0.0",
+    "express": "^4.13.3",
+    "express-busboy": "^6.0.1",
+    "mongoose": "^4.10.4",
+    "morgan": "^1.8.0",
+    "redis": "^2.7.1",
+    "resource-router-middleware": "^0.6.0",
+    "web3-provider-engine": "^12.2.2"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.9.0",
+    "babel-core": "^6.9.0",
+    "babel-preset-es2015": "^6.9.0",
+    "babel-preset-stage-0": "^6.5.0",
+    "eslint": "^3.1.1",
+    "gulp": "^3.9.1",
+    "gulp-run": "^1.7.1",
+    "nodemon": "^1.9.2"
+  }
+}
