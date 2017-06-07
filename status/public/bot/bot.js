@@ -1,6 +1,8 @@
+var isDemoMode = true;
+
 status.addListener("init",
  function (params, context) {
-    return {"text-message": "Hi, this is Lisa from Etherisc. How may I help you? \nDEMO: Apply for policy"};
+    return {"text-message": "Hi, this is Lisa from Etherisc. How may I help you?" + ((isDemoMode) ? "\nDEMO: Apply for policy" : "")};
 });
 
 status.command({
@@ -48,7 +50,7 @@ function cancelSuggestions() {
 }
 
 function backSuggestions() {
-    return suggestions(["Go back"]);
+    return suggestions(["Go Back"]);
 }
 
 var MESSAGE  = {
@@ -74,27 +76,27 @@ status.addListener("on-message-send", function (params, context) {
         var message = "";
         switch(params.message) {
             case MESSAGE.APPLY: {
-                message = "I see that you are near Schiphol Airport. Do you intend to start there? \nDEMO: Yes";
+                message = "I see that you are near Schiphol Airport. Do you intend to start there?" + ((isDemoMode) ? "\nDEMO: Yes" : "");
                 break;
             }
             case MESSAGE.YES: {
-                message = "Please select your Destination. \nDEMO: Barcelona";
+                message = "Please select your Destination." + ((isDemoMode) ? "\nDEMO: Barcelona" : "");
                 break;
             }
             case MESSAGE.DESTINATION: {
-                message = "When will the flight depart? \nDEMO: Today";
+                message = "When will the flight depart?" + ((isDemoMode) ? "\nDEMO: Today" : "");
                 break;
             }
             case MESSAGE.DEPART_DATE: {
-                message = "I found some flights for you. Please select your flight. \nDEMO: 14.50 KLM 1665";
+                message = "I found some flights for you. Please select your flight." + ((isDemoMode) ? "\nDEMO: 14.50 KLM 1665" : "");
                 break;
             }
             case MESSAGE.FLIGHT: {
-                message = "You selected flight 14.50 KLM 1665 from Schiphol Airport to Barcelona today. Please enter the desired premium. \nDEMO: 0.16 ETH";
+                message = "You selected flight 14.50 KLM 1665 from Schiphol Airport to Barcelona today. Please enter the desired premium." + ((isDemoMode) ? "\nDEMO: 0.16 ETH" : "");
                 break;
             }
             case MESSAGE.PREMIUM: {
-                message = "Depending on the delay, you'll get the following payouts: \n15 - 29 min  1.58 ETH\n30 - 44 min  2.37 ETH\n      45+ min  4.75 ETH\n  Cancelled  7.89 ETH. \n\nYou can alter the premium or apply for the policy now. \nDEMO: Accept";
+                message = "Depending on the delay, you'll get the following payouts: \n15 - 29 min  1.58 ETH\n30 - 44 min  2.37 ETH\n      45+ min  4.75 ETH\n  Cancelled  7.89 ETH. \n\nYou can alter the premium or apply for the policy now." + ((isDemoMode) ? "\nDEMO: Accept" : "");
                 break;
             }
             case MESSAGE.ACCEPT: {
@@ -105,7 +107,7 @@ status.addListener("on-message-send", function (params, context) {
                 message = "You canceled the transaction. Hope to see you again soon!";
                 break;
             case MESSAGE.BACK:
-                message = "How can I help you? \nDEMO: Apply for policy";
+                message = "How can I help you?" + ((isDemoMode) ? "\nDEMO: Apply for policy" : "");
                 break;
             default: {
                 message = "Sorry, I'm not sure I understand.";
