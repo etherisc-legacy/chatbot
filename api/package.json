@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "nodemon -w src --exec \"babel-node src --presets es2015,stage-0\"",
     "build": "babel src -s -D -d dist --presets es2015,stage-0",
+    "install-status-web3": "cd node_modules && git clone -b status-0.18.4 --single-branch https://github.com/status-im/web3.js.git web3 --depth 1",
     "start": "node dist",
     "prestart": "npm run -s build",
     "test": "eslint src"

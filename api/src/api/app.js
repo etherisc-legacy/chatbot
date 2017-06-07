@@ -1,6 +1,7 @@
 const app = {};
 
 import flights from '../lib/flights.js';
+import whisperProxy from '../lib/whisperProxy.js';
 
 app.getAirports = (req, res) => {
   const airports = flights.getAirports();

@@ -14,6 +14,9 @@ Make sure you have the following dev depencies:
 - gulp-run
 - nodemon
 
+### Using status web3 provider for Whisper V5
+Make sure `node_modules/web3` is gone and run: `npm run install-status-web3`
+
 ### Install packages
 Install packages: `npm install` in `/api` folder
 
