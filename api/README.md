@@ -16,6 +16,7 @@ Make sure you have the following dev depencies:
 
 ### Using status web3 provider for Whisper V5
 Make sure `node_modules/web3` is gone and run: `npm run install-status-web3`
+Run `npm install` in the new `node_modules/web3` folder
 
 ### Install packages
 Install packages: `npm install` in `/api` folder
