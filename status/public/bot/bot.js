@@ -12,47 +12,13 @@ status.command({
  });
 
 // some common vars
-var topic1 = '0xdeadbeef';
+var topicGet = '0x61965e62';
+var topicAnswer = '0xd38554c7';
+var topic3 = '0xc8c64923';
+var topic4 = '0x4a3621bb';
+
 var pubKey1 = '';
 var pubKey2 = '0x0486d025fc71ed281163971c91cbc4d1592273d67d5c1a3b2315b6d67c666d2a8829b5ed3fa62fb50070bba94988d9dfd565b581db318711040d37c5fcb6b418ae'; //copy from gulp in api
-
-var sendAsym = function(){
-  web3.shh.newKeyPair(function(err, id){
-    //console.log('ID: '+id);
-    web3.shh.getPublicKey(id, function(err, pub){
-      pubKey1 = pub;
-      web3.shh.getPublicKey(id, function(err, pub){
-        pubKey2 = pub;
-
-        //console.log('pubKey1: '+pubKey1);
-        //console.log('pubKey2: '+pubKey2);
-
-        var messageSend = {
-          type: "asym",
-          key: '0x04cf1512483bd50e99dd7f43f11628c13d0b337aca9a9d2343f8b73c4c190b3c396fd536a252482c8536cc97be2144e28c7d9e892d16715d950ce4143601d63544',
-          topic: topic1,
-          powTarget: 2.01,
-          powTime: 2,
-          ttl: 20,
-          payload: 'MSG FROM STATUS'
-        };
-
-        console.log(messageSend.payload);
-        console.log('SEND: '+web3.shh.post(messageSend));
-
-        /*var filterAsync = web3.shh.subscribe({
-          type: "asym",
-          key: pubKey2,
-          topics: [topic1]
-        });
-        console.log('FILTERID: '+filterAsync);
-        var messages = web3.shh.getFloatingMessages(filterAsync);
-        console.log(web3.toAscii(messages[0].payload));*/
-
-      });
-    });
-  });
-}
 
 var watchFilter = function (filter, done) {
         var messageReceived = false;
@@ -60,11 +26,116 @@ var watchFilter = function (filter, done) {
             if (messageReceived)  return; // avoid double calling
             messageReceived = true; // no need to watch for the filter any more
             filter.stopWatching();
-            console.log(error, message);
+            done(error, message);
         });
 };
 
-var sendSym = function(){
+var sendAsym = function(){
+
+//console.log(web3.shh.getPublicKey());
+
+  web3.shh.newKeyPair(function(err, id){
+    //console.log('ID: '+id);
+    web3.shh.getPublicKey(id, function(err, pub){
+      pubKey1 = pub;
+
+      //web3.shh.getPublicKey(id, function(err, pub){
+        //pubKey2 = pub;
+
+        //console.log('pubKey1: '+pubKey1);
+        //console.log('pubKey2: '+pubKey2);
+
+        var filterAsync = web3.shh.subscribe({
+          type: "asym",
+          key: pubKey1,
+          topics: [topicAnswer]
+        });
+
+        var messageSend = {
+          type: "asym",
+          key: '0x04dfef76d50dfee940f5669f60243cda5c11df54ee45a559d49c14b5b4335284c78c2e127f44169517602b33af960b422fcaeefb02635b8e28502fec52d38d9c8c',
+          sig: pubKey1,
+          topic: topicGet,
+          powTarget: 30.01,
+          powTime: 30,
+          ttl: 20,
+          payload: '{ "origin": "AMS", "destination":"CDG", "departure":"2017-06-08", "pubKey": "'+pubKey1+'" }'
+        };
+
+        //console.log(messageSend.payload);
+        if (web3.shh.post(messageSend) === null){
+
+          console.log('Message sent');
+
+          // Do some timeout magic
+          var d = new Date();
+          var s = d.getTime();
+          var wait = 6000; //Wait 4 seconds for response
+          var e = s+wait;
+          for(i=0;i<1000000;i++){
+            /*Halt script because of lack of timeout */
+            d = new Date();
+            if(d.getTime() > e){
+              break;
+            }
+          }
+
+          //Get message (API response)
+          var messages = web3.shh.getFloatingMessages(filterAsync);
+
+          if(messages.length){
+            console.log(web3.toAscii(messages[0].payload));
+            //var apiResponse = getJsonFromPayload(messages[0].payload);
+            //console.log(apiResponse);
+            //return apiResponse;
+          }else{
+            console.log('Response took to long');
+          }
+          /*for(i=0;i<10;i++){
+            messages = web3.shh.getNewSubscriptionMessages(filterAsync);
+            if(messages.length){
+              console.log(web3.toAscii(messages[0].payload));
+            }
+          }*/
+
+        }else{
+          console.log('Sending failed');
+        }
+
+        /*var filterAsync = web3.shh.subscribe({
+          type: "asym",
+          //key: pubKey1,
+          topics: [topicAnswer]
+        });
+        console.log('FILTERID: '+filterAsync);
+        var messages = web3.shh.getFloatingMessages(filterAsync);
+        console.log(web3.toAscii(messages[0].payload));*/
+        /*setTimeout(function(){
+          console.log(a);
+        },1000);
+
+        var fltr = web3.shh.filter({
+          type: "asym",
+          key: pubKey1,
+          topics: [topicAnswer]
+        }, function(err,msg){
+          console.log(err,msg);
+        }, function(err){
+          console.log(err);
+        });
+
+        fltr.watch(function(err,msg){
+          console.log(err, msg);
+        });
+        console.log('Finished');*/
+
+      //});
+    });
+  });
+}
+
+
+/*var sendSym = function(){
   web3.shh.newKeyPair(function(err, id){
     console.log('ID: '+id);
     web3.shh.getPublicKey(id, function(err, pub){
@@ -96,7 +167,7 @@ var sendSym = function(){
       console.log('SEND: '+web3.shh.post(messageSend));
     });
   });
-}
+}*/
 
 function sendWhisperMsg() {
     var result = {
@@ -105,9 +176,15 @@ function sendWhisperMsg() {
       messages: []
     };
 
-    console.log('starting');
+    console.log('Sending to API');
 
-    sendAsym();
+    var apiCallWhisper = sendAsym();
+
+    console.log(apiCallWhisper);
+
+    //if(result.length > 1){
+      //return suggestions(['a','b']);
+    //}
 
     /*if(subId){
       status.sendMessage('existing sub:'+subId.substr(0,10));
@@ -134,3 +211,68 @@ function sendWhisperMsg() {
 
     return result;
 }
+
+var getJsonFromPayload = function(hexPayload){
+  var asciiPayload = web3.toAscii(hexPayload);
+  if(!isJson(asciiPayload)) return asciiPayload;
+  return JSON.parse(asciiPayload);
+}
+
+var isJson = function (str) {
+    try {
+        return !!JSON.parse(str);
+    } catch (e) {
+        return false;
+    }
+};
+
+function suggestions(strings) {
+    var suggestions = strings.map(function(entry) {
+        return status.components.touchable(
+            {onPress: status.components.dispatch([status.events.SET_VALUE, entry])},
+            status.components.view(
+                suggestionsContainerStyle,
+                [status.components.view(
+                    suggestionSubContainerStyle,
+                    [
+                        status.components.text(
+                            {style: valueStyle},
+                            entry
+                        )
+                    ]
+                )]
+            )
+        );
+    });
+    return suggestionsInScrollView(suggestions)
+}
+
+function suggestionsInScrollView(suggestions) {
+    // Let's wrap those buttons in a scrollView
+    var view = status.components.scrollView(suggestionsContainerStyle(suggestions.count), suggestions);
+    return {markup: view}
+}
+
+function suggestionsContainerStyle(suggestionsCount) {
+    return {
+        marginVertical: 1,
+        marginHorizontal: 0,
+        keyboardShouldPersistTaps: "always",
+        height: Math.min(56, (56 * suggestionsCount)),
+        backgroundColor: "white",
+        borderRadius: 5,
+        flexGrow: 1
+    };
+}
+var suggestionSubContainerStyle = {
+    height: 56,
+    borderBottomWidth: 1,
+    borderBottomColor: "#0000001f"
+};
+
+var valueStyle = {
+    paddingTop: 9,
+    fontSize: 18,
+    fontFamily: "font",
+    color: "#000000de"
+};

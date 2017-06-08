@@ -1,5 +1,7 @@
 require('dotenv').config();
 
+import flights from './flights.js';
+
 var Web3 = require('web3');
 var web3 = new Web3();
 console.log('ATTEMPT CONNECT', `http://${process.env.WEB3_RPC_HOST}:${process.env.WEB3_RPC_PORT}`);
@@ -7,19 +9,151 @@ web3.setProvider(new web3.providers.HttpProvider(`http://${process.env.WEB3_RPC_
 
 const whisperProxy = {};
 
-whisperProxy.id = 'ff5f320449f4eef7010c12578ad257e4aa78284176296a9e5e0433e471727f65';
-whisperProxy.pubKey = '0x0432d418b527d221dfc19a0dae18b63e8781b57c7d0a35ba0120f0e18c00fabc37c7f95f6eeba031c54f4e39a10fc42e3dd541a9189cf32aa246c5563805408f62';
+whisperProxy.id = 'bbbe42ac562486525bc0ddbbafb2628bc24fe7b661bc1a519e813681cc79ff2a';
+whisperProxy.pubKey = '0x0494de0c937afb001e52a6056f692e46f6f916852365bef598114eac1b99f1708d79f2c97af4e85d2f0828db023be76a138b1c585faccea6562a844d3427e8fe05';
 
-web3.shh.newKeyPair(function(err, id){
+whisperProxy.topicGet = '0x61965e62';
+whisperProxy.topicAnswer = '0xd38554c7';
+whisperProxy.topic3 = '0xc8c64923';
+whisperProxy.topic4 = '0x4a3621bb';
+
+whisperProxy.respondToPub = (pubKey, payload) => {
+
+  var messageSend = {
+    type: "asym",
+    key: pubKey,
+    topic: whisperProxy.topicAnswer,
+    powTarget: 30.01,
+    powTime: 30,
+    ttl: 20,
+    payload: web3.toHex(payload)
+  };
+  console.log('RESPONSE', web3.shh.post(messageSend) === null, messageSend);
+
+  //console.log('RESPONDED:', );
+
+}
+
+whisperProxy.parseRequest = (msg) => {
+  console.log('Received message...');
+
+  var asciiPayload = web3.toAscii(msg.payload);
+  if (!isJson(asciiPayload)) whisperProxy.respondToPub(jsonPayload.pubKey, '{"error":"Not valid JSON"}');
+  var jsonPayload = JSON.parse(web3.toAscii(msg.payload));
+
+  console.log('JSON', jsonPayload);
+
+  var req = { body: jsonPayload };
+
+  var Ajv = require('ajv');
+  var ajv = Ajv({allErrors: true});
+
+  var schema = {
+		"properties":{
+			body: {
+				type: 'object',
+				"properties": {
+					"origin": { "type": "string", "minLength":3 },
+					"destination": { "type": "string", "minLength":3 },
+					"departure": { "format": "date"},
+				},
+				"required": ["origin", "destination", "departure"]
+			}
+		},
+		"required": ["body"]
+	};
+
+	var validate = ajv.compile(schema);
+	var valid = validate(req);
+
+  //Check if the search is valid
+  if (!valid) whisperProxy.respondToPub(jsonPayload.pubKey, '{"error":"Not a valid search"}');
+
+  // Do the search for flights
+  flights.getFlights(req.body.origin, req.body.destination, req.body.departure).then((flightList) => {
+    console.log("GOT Flightlist");
+    // Answer the public key that asked
+    whisperProxy.respondToPub(jsonPayload.pubKey, flightList);
+  });
+}
+
+whisperProxy.listen = () => {
+
+  var filterAsync = web3.shh.subscribe({
+    type: "asym",
+    key: whisperProxy.id,
+    topics: [whisperProxy.topicGet]
+  });
+
+  console.log('API Public key: ', whisperProxy.pubKey);
+  console.log('FILTERID: '+filterAsync);
+
+  var messages = web3.shh.getFloatingMessages(filterAsync);
+  if(messages.length){
+    console.log(messages);
+    whisperProxy.parseRequest(messages[0]);
+  }else{
+    console.log('No floating messages');
+  }
+
+  // Poll for messages
+  whisperProxy.timerInterval = setInterval(function(){
+    var messages = web3.shh.getNewSubscriptionMessages(filterAsync);
+      if(messages.length){
+        console.log(messages);
+        whisperProxy.parseRequest(messages[0]);
+      }else{
+        console.log('No new messages');
+      }
+  },500);
+}
+
+whisperProxy.init = () => {
+  whisperProxy.genKeys(function(){
+    whisperProxy.listen();
+  })
+}
+
+whisperProxy.genKeys = (cb) => {
+  web3.shh.newKeyPair(function(err, id){
+    whisperProxy.id = id;
+    web3.shh.getPublicKey(id, function(err, pub){
+      whisperProxy.pubKey = pub;
+      cb();
+    });
+  });
+}
+
+whisperProxy.timerInterval = false;
+
+var isJson = function (str) {
+    try {
+        return !!JSON.parse(str);
+    } catch (e) {
+        return false;
+    }
+};
+
+
+/*var makeTopic = function () {
+        var min = 1;
+        var max = Math.pow(16, 8);
+        var randInt = Math.floor(Math.random() * (max - min + 1)) + min;
+        return web3.toHex(randInt);
+};
+for(let i = 0; i < 10; i++){
+  console.log(makeTopic());
+}*/
+
+/*web3.shh.newKeyPair(function(err, id){
   whisperProxy.id = id;
   web3.shh.getPublicKey(id, function(err, pub){
-    whisperProxy.pubKey = pub;
-    var topic1 = '0xdeadbeef';
+    whisperProxy.pubKey = pub;*/
 
-    var filterAsync = web3.shh.subscribe({
+    /*var filterAsync = web3.shh.subscribe({
       type: "asym",
       key: whisperProxy.id,
-      topics: [topic1]
+      topics: [whisperProxy.topicGet]
     });
     console.log(whisperProxy);
 
@@ -35,14 +169,17 @@ web3.shh.newKeyPair(function(err, id){
     setInterval(function(){
       var messages = web3.shh.getNewSubscriptionMessages(filterAsync);
         if(messages.length){
-          console.log(web3.toAscii(messages[0].payload));
+          console.log('Received message. parsing...');
+          whisperProxy.parseRequest(messages[0]);
+          //console.log(web3.toAscii(messages[0].payload));
+          //console.log(messages);
         }else{
-          console.log('No new messages');
+          //console.log('No new messages');
         }
-    },5000);
+    },500);*/
 
-  });
-});
+  /*});
+});*/
 //var pubKey1 = web3.shh.getPublicKey(whisperProxy.id);
 
 //console.log(pubKey1, whisperProxy.pubKey);
