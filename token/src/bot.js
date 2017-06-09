@@ -2,10 +2,6 @@ const request = require('request');
 const Bot = require('./lib/Bot')
 const SOFA = require('sofa-js')
 const Fiat = require('./lib/Fiat')
-//require('dotenv').config();
-//const MetaCoin = require("../build/contracts/MetaCoin.json");
-//var MetaCoin = artifacts.require("../contracts/MetaCoin.sol");
-//import MetaCoin from '../build/contracts/MetaCoin.json'
 
 let bot = new Bot()
 
@@ -109,35 +105,6 @@ function onCommand(session, command) {
 
 function test(session, command, valueJSON) {
   //console.log(`http://${process.env.API_HOST}:${process.env.API_PORT}/getFlightList`)
-  /*console.log(session.user)
-  request.post({
-    headers: {'content-type' : 'application/x-www-form-urlencoded'},
-    url: 'http://192.168.1.104:3003/getFlightList',
-    body: 'origin=BCN&destination=MAD&departure=2017-06-12'
-  }, function(error, response, body) {
-    console.log('ERROR', error)
-    var jsonData = JSON.parse(body);
-    if(jsonData)
-    console.log('AMOUNT OF FLIGHTS:', jsonData.length)
-    const flights = [];
-    for(var i = 0 ; i < jsonData.length; i++) {
-      if(jsonData.flightId === '-') {
-        continue
-      }
-
-      console.log(jsonData[i]);
-      const flightInfo = jsonData[i].flightId + ' - ' + new Date(jsonData[i].departureTime).toTimeString();
-      const flight = {
-        flightId: jsonData[i].flightId,
-        departureYearMonthDay: jsonData[i].departureYearMonthDay,
-        departureTime: jsonData[i].departureTime,
-        arrivalTime: jsonData[i].arrivalTime,
-        flightInfo: flightInfo
-      }
-      console.log(flight)
-      flights.push(flight)
-    }
-  })*/
 }
 
 function welcome(session) {
@@ -235,7 +202,6 @@ function getFlights(session, callback) {
         continue
       }
 
-      //console.log(jsonData[i]);
       const flightInfo = jsonData[i].flightId + ' - ' + new Date(jsonData[i].departureTime).toTimeString();
       const flight = {
         flightId: jsonData[i].flightId,
