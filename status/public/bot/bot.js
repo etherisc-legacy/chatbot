@@ -18,32 +18,15 @@ var topic3 = '0xc8c64923';
 var topic4 = '0x4a3621bb';
 
 var pubKey1 = '';
-var pubKey2 = '0x0486d025fc71ed281163971c91cbc4d1592273d67d5c1a3b2315b6d67c666d2a8829b5ed3fa62fb50070bba94988d9dfd565b581db318711040d37c5fcb6b418ae'; //copy from gulp in api
+var pubKey2 = ''; //copy from gulp in api
 
-var watchFilter = function (filter, done) {
-        var messageReceived = false;
-        filter.watch(function (error, message) {
-            if (messageReceived)  return; // avoid double calling
-            messageReceived = true; // no need to watch for the filter any more
-            filter.stopWatching();
-            done(error, message);
-        });
-};
-
-var sendAsym = function(){
-
-//console.log(web3.shh.getPublicKey());
+// Fill in the codes of the airports and a departure date YYYY-MM-DD
+// AMS, CDG, 2017-08-09
+var getFlightList = function(origin, destination, departure, cb){
 
   web3.shh.newKeyPair(function(err, id){
-    //console.log('ID: '+id);
     web3.shh.getPublicKey(id, function(err, pub){
       pubKey1 = pub;
-
-      //web3.shh.getPublicKey(id, function(err, pub){
-        //pubKey2 = pub;
-
-        //console.log('pubKey1: '+pubKey1);
-        //console.log('pubKey2: '+pubKey2);
 
         var filterAsync = web3.shh.subscribe({
           type: "asym",
@@ -53,13 +36,13 @@ var sendAsym = function(){
 
         var messageSend = {
           type: "asym",
-          key: '0x04dfef76d50dfee940f5669f60243cda5c11df54ee45a559d49c14b5b4335284c78c2e127f44169517602b33af960b422fcaeefb02635b8e28502fec52d38d9c8c',
+          key: '0x04bbdd623c0cfa13a838e2dd7f85da6094a0967531c7b99d6c01ec2c35202507d2ceccbd553890c2ae21d902bf9a20de078963367f9c171cccb2c253b0fcbf7a48', //Public key of API
           sig: pubKey1,
-          topic: topicGet,
+          topic: topicGet, //Topic for getting flights
           powTarget: 30.01,
           powTime: 30,
           ttl: 20,
-          payload: '{ "origin": "AMS", "destination":"CDG", "departure":"2017-06-08", "pubKey": "'+pubKey1+'" }'
+          payload: '{ "origin": "'+origin+'", "destination":"'+destination+'", "departure":"'+departure+'", "pubKey": "'+pubKey1+'" }'
         };
 
         //console.log(messageSend.payload);
@@ -70,7 +53,7 @@ var sendAsym = function(){
           // Do some timeout magic
           var d = new Date();
           var s = d.getTime();
-          var wait = 6000; //Wait 4 seconds for response
+          var wait = 4000; //Wait 4 seconds for response
           var e = s+wait;
           for(i=0;i<1000000;i++){
             /*Halt script because of lack of timeout */
@@ -84,90 +67,20 @@ var sendAsym = function(){
           var messages = web3.shh.getFloatingMessages(filterAsync);
 
           if(messages.length){
-            console.log(web3.toAscii(messages[0].payload));
-            //var apiResponse = getJsonFromPayload(messages[0].payload);
-            //console.log(apiResponse);
+            //console.log(web3.toAscii(messages[0].payload));
+            var apiResponse = getJsonFromPayload(messages[0].payload);
+            console.log(apiResponse);
+            //localStorage.setItem("cnt", cnt);
             //return apiResponse;
           }else{
             console.log('Response took to long');
           }
-          /*for(i=0;i<10;i++){
-            messages = web3.shh.getNewSubscriptionMessages(filterAsync);
-            if(messages.length){
-              console.log(web3.toAscii(messages[0].payload));
-            }
-          }*/
-
         }else{
           console.log('Sending failed');
         }
-
-        /*var filterAsync = web3.shh.subscribe({
-          type: "asym",
-          //key: pubKey1,
-          topics: [topicAnswer]
-        });
-        console.log('FILTERID: '+filterAsync);
-        var messages = web3.shh.getFloatingMessages(filterAsync);
-        console.log(web3.toAscii(messages[0].payload));*/
-        /*setTimeout(function(){
-          console.log(a);
-        },1000);
-
-        var fltr = web3.shh.filter({
-          type: "asym",
-          key: pubKey1,
-          topics: [topicAnswer]
-        }, function(err,msg){
-          console.log(err,msg);
-        }, function(err){
-          console.log(err);
-        });
-
-        fltr.watch(function(err,msg){
-          console.log(err, msg);
-        });
-        console.log('Finished');*/
-
-      //});
     });
   });
 }
-
-
-/*var sendSym = function(){
-  web3.shh.newKeyPair(function(err, id){
-    console.log('ID: '+id);
-    web3.shh.getPublicKey(id, function(err, pub){
-      pubKey1 = pub;
-      console.log('pubKey1: '+pubKey1);
-
-      var keyId = web3.shh.generateSymmetricKey();
-      console.log('keyId '+keyId);
-
-       //var keyVal = web3.shh.getSymmetricKey(keyId);
-       //console.log('keyVal '+keyVal);
-       //var keyVal = web3.shh.getSymmetricKey(keyId);
-       //console.log('keyVal '+keyVal);
-
-       watchFilter(web3.shh.filter({
-         type: "sym",
-         key: keyId,
-         topics: [topic1]
-       }), function (err, message) {
-           console.log(err);
-      });
-
-      var messageSend = {
-        type: "sym",
-        key: keyId,
-        topic: topic1
-      };
-
-      console.log('SEND: '+web3.shh.post(messageSend));
-    });
-  });
-}*/
 
 function sendWhisperMsg() {
     var result = {
@@ -178,7 +91,7 @@ function sendWhisperMsg() {
 
     console.log('Sending to API');
 
-    var apiCallWhisper = sendAsym();
+    var apiCallWhisper = getFlightList();
 
     console.log(apiCallWhisper);
 

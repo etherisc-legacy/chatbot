@@ -101,7 +101,7 @@ qpx.search = function (body, callback) {
 
 qpx.parseFlights = function (response) {
 	var flights = [];
-	if (typeof(response.trips.tripOption) != 'undefined') {
+	if (typeof(response.trips) != 'undefined' && typeof(response.trips.tripOption) != 'undefined') {
 		var tripOption = response.trips.tripOption;
 		flights.push({id:'-', text:''})
 		for (var id = 0; id<tripOption.length; id++) {

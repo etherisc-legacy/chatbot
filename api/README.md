@@ -14,11 +14,14 @@ Make sure you have the following dev depencies:
 - gulp-run
 - nodemon
 
+### Install packages
+Install packages: `npm install` in `/api` folder
+
 ### Using status web3 provider for Whisper V5
 Make sure `node_modules/web3` is gone and run: `npm run install-status-web3`
 
-### Install packages
-Install packages: `npm install` in `/api` folder
+### Start Geth 1.6 with Whisper V5
+`exec bash -c '~/go-ethereum/build/bin/geth --verbosity 4 --shh --rpc --rpccorsdomain "*" --port "8546" --light --rpcapi "db,eth,net,h,net,web3,shh" --networkid 3 --unlock "0"'`
 
 ### Setup environment
 Copy `sample.env` to `.env` and fill the variables
