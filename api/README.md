@@ -19,6 +19,7 @@ Install packages: `npm install` in `/api` folder
 
 ### Using status web3 provider for Whisper V5
 Make sure `node_modules/web3` is gone and run: `npm run install-status-web3`
+Run `npm install` in the new `node_modules/web3` folder
 
 ### Start Geth 1.6 with Whisper V5
 `exec bash -c '~/go-ethereum/build/bin/geth --verbosity 4 --shh --rpc --rpccorsdomain "*" --port "8546" --light --rpcapi "db,eth,net,h,net,web3,shh" --networkid 3 --unlock "0"'`
