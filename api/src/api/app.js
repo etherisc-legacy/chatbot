@@ -3,7 +3,7 @@ const app = {};
 import flights from '../lib/flights.js';
 import whisperProxy from '../lib/whisperProxy.js';
 
-whisperProxy.init();
+//whisperProxy.init();
 
 app.getAirports = (req, res) => {
   const airports = flights.getAirports();
