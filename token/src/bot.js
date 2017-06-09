@@ -223,7 +223,7 @@ function getFlights(session, callback) {
 
   request.post({
     headers: {'content-type' : 'application/x-www-form-urlencoded'},
-    url: `http://78.46.104.19:3003/getFlightList`,
+    url: `http:/localhost:3003/getFlightList`,
     body: `origin=${origin}&destination=${destination}&departure=${date}`
   }, function(error, response, body) {
     console.log('ERROR', error)
