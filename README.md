@@ -22,3 +22,11 @@ Slack Username: @christoph2806
 Name: **Will**  
 Github Handle: @wsaults  
 Slack Username: @wsaults
+
+Name: **Juriaan**  
+Github Handle: @sunfeld  
+Slack Username: @jurrr
+
+Name: **Freek**  
+Github Handle: @freekp  
+Slack Username: @freek
