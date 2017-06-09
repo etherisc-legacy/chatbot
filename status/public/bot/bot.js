@@ -36,7 +36,7 @@ var getFlightList = function(origin, destination, departure, cb){
 
         var messageSend = {
           type: "asym",
-          key: '0x042daef62cc1c221ffcfc1dade5035e2079a30e05722a815cea22bd1171cf9b72dc2258a699ef19eaf18d1dd21cc8eedef8c8005f8f6fcedc9f3539f66b0cce8cd', //Public key of API
+          key: '0x044fb60526fc31be147b7c462cad4cd0c6d2c80c37799c05c8480c4a20868c2284293eb5cec06ab364df740bdc8c75c6cd88a1aba7cbc1f7edb839ab0219df8007', //Public key of API
           sig: pubKey1,
           topic: topicGet, //Topic for getting flights
           powTarget: 30.01,
@@ -91,7 +91,7 @@ function sendWhisperMsg() {
 
     console.log('Sending to API');
 
-    var apiCallWhisper = getFlightList();
+    var apiCallWhisper = getFlightList('AMS', 'CDG', '2017-09-09');
 
     console.log(apiCallWhisper);
 
