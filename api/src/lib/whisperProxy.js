@@ -110,8 +110,8 @@ whisperProxy.listen = () => {
 
 whisperProxy.init = () => {
   //whisperProxy.genKeys(function(){
-    whisperProxy.id = '8ef89ff008e801911307c95696f2a5e2fa6e14652fda6e00f463754e31ee6512';
-    whisperProxy.pubKey = '0x04bbdd623c0cfa13a838e2dd7f85da6094a0967531c7b99d6c01ec2c35202507d2ceccbd553890c2ae21d902bf9a20de078963367f9c171cccb2c253b0fcbf7a48';
+    whisperProxy.id = '';
+    whisperProxy.pubKey = '';
     whisperProxy.listen();
   //})
 }
