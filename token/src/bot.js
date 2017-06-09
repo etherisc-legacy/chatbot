@@ -2,6 +2,10 @@ const request = require('request');
 const Bot = require('./lib/Bot')
 const SOFA = require('sofa-js')
 const Fiat = require('./lib/Fiat')
+require('dotenv').config();
+//const MetaCoin = require("../build/contracts/MetaCoin.json");
+//var MetaCoin = artifacts.require("../contracts/MetaCoin.sol");
+//import MetaCoin from '../build/contracts/MetaCoin.json'
 
 let bot = new Bot()
 
@@ -74,6 +78,7 @@ function onMessage(session, message) {
 function onCommand(session, command) {
   console.log('COMMAND', command.content.value)
   const valueJSON = JSON.parse(command.content.value)
+  console.log('VALUEJSON', valueJSON)
   switch (valueJSON.command) {
     case 'applyPolicy':
       applyPolicy(session)
@@ -95,15 +100,44 @@ function onCommand(session, command) {
       cancel(session)
       break
     case 'test':
-      test(session)
+      test(session, command, valueJSON.extraInfo)
       break
     }
 }
 
 // STATES
 
-function test(session) {
-  //TODO call API
+function test(session, command, valueJSON) {
+  //console.log(`http://${process.env.API_HOST}:${process.env.API_PORT}/getFlightList`)
+  /*console.log(session.user)
+  request.post({
+    headers: {'content-type' : 'application/x-www-form-urlencoded'},
+    url: 'http://192.168.1.104:3003/getFlightList',
+    body: 'origin=BCN&destination=MAD&departure=2017-06-12'
+  }, function(error, response, body) {
+    console.log('ERROR', error)
+    var jsonData = JSON.parse(body);
+    if(jsonData)
+    console.log('AMOUNT OF FLIGHTS:', jsonData.length)
+    const flights = [];
+    for(var i = 0 ; i < jsonData.length; i++) {
+      if(jsonData.flightId === '-') {
+        continue
+      }
+
+      console.log(jsonData[i]);
+      const flightInfo = jsonData[i].flightId + ' - ' + new Date(jsonData[i].departureTime).toTimeString();
+      const flight = {
+        flightId: jsonData[i].flightId,
+        departureYearMonthDay: jsonData[i].departureYearMonthDay,
+        departureTime: jsonData[i].departureTime,
+        arrivalTime: jsonData[i].arrivalTime,
+        flightInfo: flightInfo
+      }
+      console.log(flight)
+      flights.push(flight)
+    }
+  })*/
 }
 
 function welcome(session) {
@@ -123,7 +157,6 @@ function isValidAirportCode(airportCode) {
 }
 
 function validateOrigin(session, message) {
-  console.log('MESSAGE', message)
   const hasCorrectFormat = isValidAirportCode(message.body)
   if (hasCorrectFormat) {
     requestDestination(session, message.body)
@@ -135,16 +168,15 @@ function validateOrigin(session, message) {
 function requestDestination(session, message) {
   session.set('Origin', message)
   setProcessStep(session, ProcessStepEnum.DESTINATION)
-  sendMessageWithCancel(session, 'Please enter your destination. (IATA-Code, e.g. JFK)')
+  sendMessageWithCancel(session, 'Please enter your destination. (IATA-Code, e.g. AMS)')
 }
 
 function validateDestination(session, message) {
-  console.log('MESSAGE', message)
   const hasCorrectFormat = isValidAirportCode(message.body)
   if (hasCorrectFormat) {
     requestDate(session, message.body)
   } else {
-    sendMessageWithCancel(session, 'Format incorrect. Please enter the IATA-code (e.g. JFK) of your destination')  
+    sendMessageWithCancel(session, 'Format incorrect. Please enter the IATA-code (e.g. AMS) of your destination')  
   }
 }
 
@@ -170,13 +202,62 @@ function validateDate(session, message) {
 function showFlights(session, message) {
   session.set('Date', message)
   setProcessStep(session, ProcessStepEnum.FLIGHT)
-  sendMessageFlights(session, 'Please select your flight')
-  //TODO DO AN API CALL
+  getFlights(session, function(flights) {
+    console.log('callback')
+    if(flights.length > 0) {
+      sendMessageFlights(session, 'Please select your flight', flights)
+    }
+    else {
+      sendMessageStartOver(session, 'No flights were found. Please try again')
+    }
+  });
 }
 
-function saveChosenFlight(session, flightId, flightInfo) {
-  console.log('SAVE CHOSEN FLIGHT', flightId, flightInfo)
-  session.set('FlightId', flightId)
+function getFlights(session, callback) {
+  console.log('GET FLIGHTS')
+  const origin = session.get('Origin')
+  const destination = session.get('Destination')
+  const date = session.get('Date')
+
+  const flights = [];
+
+  request.post({
+    headers: {'content-type' : 'application/x-www-form-urlencoded'},
+    url: `http://78.46.104.19:3003/getFlightList`,
+    body: `origin=${origin}&destination=${destination}&departure=${date}`
+  }, function(error, response, body) {
+    console.log('ERROR', error)
+    var jsonData = JSON.parse(body);
+    console.log('AMOUNT OF FLIGHTS:', jsonData.length)
+    for(var i = 0 ; i < jsonData.length; i++) {
+      if(jsonData[i].flightId === undefined || jsonData[i].flightId.length != 7) {
+        console.log('FLIGHT ID UNDEFINED')
+        continue
+      }
+
+      //console.log(jsonData[i]);
+      const flightInfo = jsonData[i].flightId + ' - ' + new Date(jsonData[i].departureTime).toTimeString();
+      const flight = {
+        flightId: jsonData[i].flightId,
+        departureYearMonthDay: jsonData[i].departureYearMonthDay,
+        departureTime: jsonData[i].departureTime,
+        arrivalTime: jsonData[i].arrivalTime,
+        flightInfo: flightInfo
+      }
+      //console.log(flight)
+      flights.push(flight)
+      console.log('Adding flight:' + flight.flightId)
+    }
+    callback(flights)
+  })
+}
+
+function saveChosenFlight(session, extraInfo, flightInfo) {
+  console.log('SAVE CHOSEN FLIGHT', extraInfo, flightInfo)
+  session.set('FlightId', extraInfo.flightId)
+  session.set('DepartureTime', extraInfo.departureTime)
+  session.set('ArrivalTime', extraInfo.arrivalTime)
+  session.set('DepartureYearMonthDay', extraInfo.departureYearMonthDay)
   session.set('FlightInfo', flightInfo)
 }
 
@@ -220,6 +301,7 @@ function requestNewPremium(session) {
 }
 
 function applicationConfirmed(session) {
+  printSession(session)
   const confirmedMessage = 'Congratulations! You have successfully applied for a FlightDelay Policy. The transaction hash is 0xdeadbeef'
   sendMessageAction(session, confirmedMessage)
 }
@@ -247,7 +329,21 @@ function getProcessStep(session) {
 }
 
 function clearSession(session) {
-  session.set('processStep', null);
+  //session.set('processStep', null);
+  session.reset();
+}
+
+function printSession(session) {
+  console.log('Origin', session.get('Origin'))
+  console.log('Destination', session.get('Destination'))
+  console.log('Date', session.get('Date'))
+  console.log('ProcessStep', session.get('processStep'))
+  console.log('Premium', session.get('Premium'))
+  console.log('FlightId', session.get('FlightId'))
+  console.log('DepartureTime', session.get('DepartureTime'))
+  console.log('ArrivalTime', session.get('ArrivalTime'))
+  console.log('DepartureYearMonthDay', session.get('DepartureYearMonthDay'))
+  console.log('FlightInfo', session.get('FlightInfo'))
 }
 
 // MESSAGES
@@ -260,10 +356,17 @@ function sendMessageSimple(session, message) {
 }
 
 function sendMessageAction(session, message) {
+  const testValue = {
+      "flightId": "JF9823",
+      "departureYearMonthDay": "Today",
+      "departureTime": "14:00",
+      "arrivalTime": "18:00"
+  }
+  
   let controls = [
-    {type: 'button', label: 'Apply for policy', value: createValueComposite('applyPolicy', '')},
-    {type: 'button', label: 'Show my policies', value: createValueComposite('showPolicies', '')},
-    {type: 'button', label: 'Test', value: createValueComposite('test', 'flowers')},
+    {type: 'button', label: 'Apply for policy', value: createValueComposite('applyPolicy')},
+    {type: 'button', label: 'Show my policies', value: createValueComposite('showPolicies')},
+    //{type: 'button', label: 'Test', value: createValueComposite('test', testValue)},
   ]
   session.reply(SOFA.Message({
     body: message,
@@ -274,7 +377,18 @@ function sendMessageAction(session, message) {
 
 function sendMessageWithCancel(session, message) {
   let controls = [
-    {type: 'button', label: 'Cancel', value: createValueComposite('cancel', '')},
+    {type: 'button', label: 'Cancel', value: createValueComposite('cancel')},
+  ]
+  session.reply(SOFA.Message({
+    body: message,
+    controls: controls,
+    showKeyboard: false,
+  }))
+}
+
+function sendMessageStartOver(session, message) {
+  let controls = [
+    {type: 'button', label: 'Start over', value: createValueComposite('cancel')},
   ]
   session.reply(SOFA.Message({
     body: message,
@@ -284,14 +398,23 @@ function sendMessageWithCancel(session, message) {
 }
 
 //TODO Create this dynamically based on the flights we get from the API
-function sendMessageFlights(session, message) {
+function sendMessageFlights(session, message, flights) {
+  console.log('SEND MESSAGE FLIGHTS')
+  const buttons = []
+  for(var i = 0 ; i < flights.length; i++) {
+    const buttonValue = {
+      "flightId": flights[i].flightId, 
+      "departureYearMonthDay": flights[i].departureYearMonthDay,
+      "departureTime": flights[i].departureTime,
+      "arrivalTime": flights[i].arrivalTime
+    }
+    const button = {type: 'button', label: flights[i].flightInfo, value: createValueComposite('chooseFlight', buttonValue)}
+    buttons.push(button)
+  }
+  console.log('CONTROLS', buttons)
   let controls = [
-    {type: 'group', label: 'View flights', controls: [
-      {type: 'button', label: '09:30 - Vueling VY4567', value: createValueComposite('chooseFlight', 'VY4567')},
-      {type: 'button', label: '12:30 - Transavia TK3439', value: createValueComposite('chooseFlight', 'TK3439')},
-      {type: 'button', label: '15:00 - KLM KM9980', value: createValueComposite('chooseFlight', 'KM9980')}
-    ]},
-    {type: 'button', label: 'Cancel', value: createValueComposite('cancel', '')},
+    {type: 'group', label: 'View flights', controls: buttons},
+    {type: 'button', label: 'Cancel', value: createValueComposite('cancel')},
   ]
   session.reply(SOFA.Message({
     body: message,
@@ -302,8 +425,9 @@ function sendMessageFlights(session, message) {
 
 function sendMessagePremiumConfirm(session, message) {
   let controls = [
-    {type: 'button', label: 'Accept', value: createValueComposite('acceptPremium', '')},
-    {type: 'button', label: 'Change premium', value: createValueComposite('changePremium', '')},
+    {type: 'button', label: 'Change premium', value: createValueComposite('changePremium')},
+    {type: 'button', label: 'Cancel', value: createValueComposite('cancel')},
+    {type: 'button', label: 'Accept', value: createValueComposite('acceptPremium')},    
   ]
   session.reply(SOFA.Message({
     body: message,
@@ -313,5 +437,8 @@ function sendMessagePremiumConfirm(session, message) {
 }
 
 function createValueComposite(value, extraInfo) {
-  return `{"command": "${value}", "extraInfo": "${extraInfo}"}`
+  if(extraInfo === undefined) {
+    extraInfo = {}
+  }
+  return `{"command": "${value}", "extraInfo": ${JSON.stringify(extraInfo)}}`
 }
