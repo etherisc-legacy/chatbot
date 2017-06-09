@@ -2,7 +2,7 @@ const request = require('request');
 const Bot = require('./lib/Bot')
 const SOFA = require('sofa-js')
 const Fiat = require('./lib/Fiat')
-require('dotenv').config();
+//require('dotenv').config();
 //const MetaCoin = require("../build/contracts/MetaCoin.json");
 //var MetaCoin = artifacts.require("../contracts/MetaCoin.sol");
 //import MetaCoin from '../build/contracts/MetaCoin.json'
