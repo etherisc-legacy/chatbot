@@ -36,7 +36,7 @@ var getFlightList = function(origin, destination, departure, cb){
 
         var messageSend = {
           type: "asym",
-          key: '0x04bbdd623c0cfa13a838e2dd7f85da6094a0967531c7b99d6c01ec2c35202507d2ceccbd553890c2ae21d902bf9a20de078963367f9c171cccb2c253b0fcbf7a48', //Public key of API
+          key: '0x042daef62cc1c221ffcfc1dade5035e2079a30e05722a815cea22bd1171cf9b72dc2258a699ef19eaf18d1dd21cc8eedef8c8005f8f6fcedc9f3539f66b0cce8cd', //Public key of API
           sig: pubKey1,
           topic: topicGet, //Topic for getting flights
           powTarget: 30.01,
