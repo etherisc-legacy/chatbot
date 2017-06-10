@@ -124,9 +124,10 @@ function isValidAirportCode(airportCode) {
 }
 
 function validateOrigin(session, message) {
-  const hasCorrectFormat = isValidAirportCode(message.body)
+  const origin = message.body.toUpperCase()
+  const hasCorrectFormat = isValidAirportCode(origin)
   if (hasCorrectFormat) {
-    requestDestination(session, message.body)
+    requestDestination(session, origin)
   } else {
     sendMessageWithCancel(session, 'Format incorrect. Please enter the IATA-code (e.g. JFK) of your origin')
   }
@@ -139,9 +140,10 @@ function requestDestination(session, message) {
 }
 
 function validateDestination(session, message) {
-  const hasCorrectFormat = isValidAirportCode(message.body)
+  const destination = message.body.toUpperCase()
+  const hasCorrectFormat = isValidAirportCode(destination)
   if (hasCorrectFormat) {
-    requestDate(session, message.body)
+    requestDate(session, destination)
   } else {
     sendMessageWithCancel(session, 'Format incorrect. Please enter the IATA-code (e.g. AMS) of your destination')  
   }
