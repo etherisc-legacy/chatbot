@@ -134,8 +134,8 @@ function validateOrigin(session, message) {
 }
 
 function requestDestination(session, message) {
-  session.set('Origin', message)
   setProcessStep(session, ProcessStepEnum.DESTINATION)
+  session.set('Origin', message)
   sendMessageWithCancel(session, 'Please enter your destination. (IATA-Code, e.g. AMS)')
 }
 
@@ -150,8 +150,8 @@ function validateDestination(session, message) {
 }
 
 function requestDate(session, message) {
-  session.set('Destination', message)
   setProcessStep(session, ProcessStepEnum.DATE)
+  session.set('Destination', message)  
   sendMessageWithCancel(session, 'Please enter the flight date in a YYYY-MM-DD format')
 }
 
@@ -441,7 +441,7 @@ function sendMessagePremiumConfirm(session, message) {
   let controls = [
     {type: 'button', label: 'Change premium', value: createValueComposite('changePremium')},
     {type: 'button', label: 'Cancel', value: createValueComposite('cancel')},
-    {type: 'button', label: 'Accept', value: createValueComposite('acceptPremium')},    
+    {type: 'button', label: 'Accept policy', value: createValueComposite('acceptPremium')},    
   ]
   session.reply(SOFA.Message({
     body: message,
