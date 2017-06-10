@@ -1,11 +1,136 @@
+var isDemoMode = true;
+
+status.addListener("init",
+ function (params, context) {
+    return {"text-message": "Hi, this is Lisa from Etherisc. How may I help you?" + ((isDemoMode) ? "\nDEMO: Apply for policy" : "")};
+});
 
 status.command({
-     name: "menu",
+     name: "start",
      title: "Start app",
      description: "Helps you use Etherisc",
      color: "#0000ff",
      params: [{
               name: "greet",
+              type: status.types.TEXT,
+              suggestions: startSuggestions
+             }]
+ });
+
+ status.command({
+     name: "cancel",
+     title: "Cancel",
+     description: "Cancel the current operation",
+     color: "#0000ff",
+     params: [{
+              name: "cancel",
+              type: status.types.TEXT,
+              suggestions: cancelSuggestions
+             }]
+ });
+
+ status.command({
+     name: "back",
+     title: "Back",
+     description: "Takes you back",
+     color: "#0000ff",
+     params: [{
+              name: "back",
+              type: status.types.TEXT,
+              suggestions: backSuggestions
+             }]
+ });
+
+function startSuggestions() {
+    return suggestions(["Apply for policy", "Show my policies"]);
+}
+
+function cancelSuggestions() {
+    return suggestions(["Cancel"]);
+}
+
+function backSuggestions() {
+    return suggestions(["Go Back"]);
+}
+
+var MESSAGE  = {
+    APPLY  : "Apply for policy",
+    YES  : "Yes",
+    CANCEL : "Cancel",
+    BACK   : "Go Back",
+    DESTINATION : "Barcelona",
+    DEPART_DATE : "Today",
+    FLIGHT : "14.50 KLM 1665",
+    PREMIUM : "0.16 ETH",
+    ACCEPT : "Accept"
+};
+
+status.addListener("on-message-send", function (params, context) {
+    var result = {
+            err: null,
+            data: null,
+            messages: []
+        };
+
+    try {
+        var message = "";
+        switch(params.message) {
+            case MESSAGE.APPLY: {
+                message = "I see that you are near Schiphol Airport. Do you intend to start there?" + ((isDemoMode) ? "\nDEMO: Yes" : "");
+                break;
+            }
+            case MESSAGE.YES: {
+                message = "Please select your Destination." + ((isDemoMode) ? "\nDEMO: Barcelona" : "");
+                break;
+            }
+            case MESSAGE.DESTINATION: {
+                message = "When will the flight depart?" + ((isDemoMode) ? "\nDEMO: Today" : "");
+                break;
+            }
+            case MESSAGE.DEPART_DATE: {
+                message = "I found some flights for you. Please select your flight." + ((isDemoMode) ? "\nDEMO: 14.50 KLM 1665" : "");
+                break;
+            }
+            case MESSAGE.FLIGHT: {
+                message = "You selected flight 14.50 KLM 1665 from Schiphol Airport to Barcelona today. Please enter the desired premium." + ((isDemoMode) ? "\nDEMO: 0.16 ETH" : "");
+                break;
+            }
+            case MESSAGE.PREMIUM: {
+                message = "Depending on the delay, you'll get the following payouts: \n15 - 29 min  1.58 ETH\n30 - 44 min  2.37 ETH\n      45+ min  4.75 ETH\n  Cancelled  7.89 ETH. \n\nYou can alter the premium or apply for the policy now." + ((isDemoMode) ? "\nDEMO: Accept" : "");
+                break;
+            }
+            case MESSAGE.ACCEPT: {
+                message = "Congrats! You have successfully applied for a FlightDelay Policy. The Tx Hash is 0xdeadbeef...";
+                break;
+            }
+            case MESSAGE.CANCEL:
+                message = "You canceled the transaction. Hope to see you again soon!";
+                break;
+            case MESSAGE.BACK:
+                message = "How can I help you?" + ((isDemoMode) ? "\nDEMO: Apply for policy" : "");
+                break;
+            default: {
+                message = "Sorry, I'm not sure I understand.";
+            }
+        }
+    } catch (e) {
+        result.err = e;
+    }
+
+    result["text-message"] = message
+    return result;
+});
+
+
+/** Suggestion helpers */
+
+status.command({
+     name: "1flights",
+     title: "Get flights",
+     description: "Get flights via whisper",
+     color: "#0000ff",
+     params: [{
+              name: "flights1",
               type: status.types.TEXT,
               suggestions: sendWhisperMsg
              }]
@@ -14,15 +139,18 @@ status.command({
 // some common vars
 var topicGet = '0x61965e62';
 var topicAnswer = '0xd38554c7';
-var topic3 = '0xc8c64923';
-var topic4 = '0x4a3621bb';
-
 var pubKey1 = '';
-var pubKey2 = ''; //copy from gulp in api
+var pubKeyBot = '0x042f3c78c8964ac8893d1df0bd053b1bd677ca56b7f7d6d14aad94c683e38c4258ca585592a5c4cb400f6a72a0b562ff92d79c62222fbb0b2bb28df86e3080c91e';
 
 // Fill in the codes of the airports and a departure date YYYY-MM-DD
 // AMS, CDG, 2017-08-09
 var getFlightList = function(origin, destination, departure, cb){
+
+  //var flightHash = web3.sha3(origin+'|'+destination+'|'+departure);
+  //console.log(flightHash);
+
+  //var flightData = localStorage.get(flightHash);
+  //console.log(flightData);
 
   web3.shh.newKeyPair(function(err, id){
     web3.shh.getPublicKey(id, function(err, pub){
@@ -36,11 +164,11 @@ var getFlightList = function(origin, destination, departure, cb){
 
         var messageSend = {
           type: "asym",
-          key: '0x044fb60526fc31be147b7c462cad4cd0c6d2c80c37799c05c8480c4a20868c2284293eb5cec06ab364df740bdc8c75c6cd88a1aba7cbc1f7edb839ab0219df8007', //Public key of API
+          key: pubKeyBot, //Public key of API
           sig: pubKey1,
           topic: topicGet, //Topic for getting flights
-          powTarget: 30.01,
-          powTime: 30,
+          powTarget: 2.01,
+          powTime: 2,
           ttl: 20,
           payload: '{ "origin": "'+origin+'", "destination":"'+destination+'", "departure":"'+departure+'", "pubKey": "'+pubKey1+'" }'
         };
@@ -69,9 +197,9 @@ var getFlightList = function(origin, destination, departure, cb){
           if(messages.length){
             //console.log(web3.toAscii(messages[0].payload));
             var apiResponse = getJsonFromPayload(messages[0].payload);
-            console.log(apiResponse);
+            //nsole.log(apiResponse);
             //localStorage.setItem("cnt", cnt);
-            //return apiResponse;
+            cb(apiResponse);
           }else{
             console.log('Response took to long');
           }
@@ -89,40 +217,19 @@ function sendWhisperMsg() {
       messages: []
     };
 
-    console.log('Sending to API');
+    var apiCallWhisper = getFlightList('AMS', 'CDG', '2017-09-11', function(resultCall){
+      //resultCall[0]);
+      return suggestions(['a','b']);
+    });
 
-    var apiCallWhisper = getFlightList('AMS', 'CDG', '2017-09-09');
 
-    console.log(apiCallWhisper);
+    //console.log(web3.net.peerCount);
 
     //if(result.length > 1){
-      //return suggestions(['a','b']);
+      //
     //}
 
-    /*if(subId){
-      status.sendMessage('existing sub:'+subId.substr(0,10));
-      m1 = web3.shh.getFloatingMessages(subId);
-      m2 = web3.shh.getNewSubscriptionMessages(subId);
-      status.sendMessage(JSON.stringify(m1));
-      status.sendMessage(JSON.stringify(m2));
-    }else{
-      web3.shh.newKeyPair(function(err, id){
-        web3.shh.getPublicKey(id, function(err, pub){
-          web3.shh.subscribe({type: 'asym', minPow: 1, topics:['1'], key:pub}, function(e,a){
-            status.sendMessage('subscribing');
-            if (e) { status.sendMessage(e); } else { status.sendMessage(a); }
-            subId = a;
-            status.sendMessage('NEW sub:'+subId.substr(0,10));
-            m1 = web3.shh.getFloatingMessages(subId);
-            m2 = web3.shh.getNewSubscriptionMessages(subId);
-            status.sendMessage(JSON.stringify(m1));
-            status.sendMessage(JSON.stringify(m2));
-          });
-        });
-      });
-    }*/
-
-    return result;
+    return apiCallWhisper;
 }
 
 var getJsonFromPayload = function(hexPayload){
