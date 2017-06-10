@@ -109,11 +109,11 @@ whisperProxy.listen = () => {
 }
 
 whisperProxy.init = () => {
-  //whisperProxy.genKeys(function(){
-    whisperProxy.id = 'b8edda1f28f228bd91437eac994fd4b1055c82be246b5deaf31b4f865d4fc39d';
-    whisperProxy.pubKey = '0x042f3c78c8964ac8893d1df0bd053b1bd677ca56b7f7d6d14aad94c683e38c4258ca585592a5c4cb400f6a72a0b562ff92d79c62222fbb0b2bb28df86e3080c91e';
+  whisperProxy.genKeys(function(){
+    //whisperProxy.id = 'b8edda1f28f228bd91437eac994fd4b1055c82be246b5deaf31b4f865d4fc39d';
+    //whisperProxy.pubKey = '0x042f3c78c8964ac8893d1df0bd053b1bd677ca56b7f7d6d14aad94c683e38c4258ca585592a5c4cb400f6a72a0b562ff92d79c62222fbb0b2bb28df86e3080c91e';
     whisperProxy.listen();
-  //})
+  })
 }
 
 whisperProxy.genKeys = (cb) => {
