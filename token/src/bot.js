@@ -251,12 +251,11 @@ function validatePremium(session, message) {
 function requestConfirmation(session, message) {
   session.set('Premium', message)
   setProcessStep(session, ProcessStepEnum.CONFIRM)
-  const confirmMessage = `Depending on the delay, you will get the following payouts.
-                          You can alter the premium or apply for the policy now.
-                          15 - 29 mins 1.58 ETH
-                          30 - 44 mins 2.37 ETH
-                          45+ mins 4.75 ETH
-                          Canceled 7.98 ETH`
+  const confirmMessage =  `Depending on the delay, you will get the following payouts. You can alter the premium or apply for the policy now.
+  15 - 29 mins 1.58 ETH
+  30 - 44 mins 2.37 ETH
+  45+ mins 4.75 ETH
+  Canceled 7.98 ETH`
   sendMessagePremiumConfirm(session, confirmMessage)
 }
 
@@ -268,12 +267,39 @@ function requestNewPremium(session) {
 
 function applicationConfirmed(session) {
   printSession(session)
-  const confirmedMessage = 'Congratulations! You have successfully applied for a FlightDelay Policy. The transaction hash is 0xdeadbeef'
+  savePolicyInSession(session)
+  const confirmedMessage = 'Congratulations! You have successfully applied for a FlightDelay Policy. The transaction hash is 0xdeadbeef. Have a safe flight!'
   sendMessageAction(session, confirmedMessage)
 }
 
+function savePolicyInSession(session) {
+  let policies = session.get('MyPolicies')
+  console.log('POLICY SESSION', policies, typeof policies)
+  if(policies === undefined) {
+    policies = []
+  }
+  const origin = session.get('Origin');
+  const destination = session.get('Destination')
+  const flightInfo = session.get('FlightInfo');
+  const date = session.get('Date');
+  const premium = session.get('Premium')
+  const newPolicy = `You have a policy for flight ${flightInfo} from ${origin} to ${destination} on ${date} for ${premium} ETH!`
+
+  policies.push(newPolicy)
+  session.set('MyPolicies', policies)
+}
+
 function showPolicies(session) {
-  sendMessageWithCancel(session, 'You have no policy yet')
+  let policies = session.get('MyPolicies')
+  console.log('MY POLICIES', policies)
+  if(policies === undefined || policies.length == 0) {
+    sendMessageWithCancel(session, 'You have no policy yet')
+  } else {
+    for(var i = 0 ; i < policies.length; i++) {
+      sendMessageSimple(session, policies[i])
+    }
+    sendMessageApplyPolicy(session, 'These are your current policies')
+  }
 }
 
 function cancel(session) {
@@ -295,8 +321,17 @@ function getProcessStep(session) {
 }
 
 function clearSession(session) {
-  //session.set('processStep', null);
-  session.reset();
+  //session.reset();
+  session.set('processStep', null);
+  session.set('Origin', null)
+  session.set('Destination', null)
+  session.set('Date', null)
+  session.set('Premium', null)
+  session.set('FlightId', null)
+  session.set('DepartureTime', null)
+  session.set('ArrivalTime', null)
+  session.set('DepartureYearMonthDay', null)
+  session.set('FlightInfo', null)
 }
 
 function printSession(session) {
@@ -354,7 +389,18 @@ function sendMessageWithCancel(session, message) {
 
 function sendMessageStartOver(session, message) {
   let controls = [
-    {type: 'button', label: 'Start over', value: createValueComposite('cancel')},
+    {type: 'button', label: 'Start over', value: createValueComposite('applyPolicy')},
+  ]
+  session.reply(SOFA.Message({
+    body: message,
+    controls: controls,
+    showKeyboard: false,
+  }))
+}
+
+function sendMessageApplyPolicy(session, message) {
+  let controls = [
+    {type: 'button', label: 'Apply for a new policy', value: createValueComposite('applyPolicy')},
   ]
   session.reply(SOFA.Message({
     body: message,
